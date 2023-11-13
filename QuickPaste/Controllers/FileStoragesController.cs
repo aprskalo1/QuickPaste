@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Azure.Storage.Blobs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -19,149 +20,27 @@ namespace QuickPaste.Controllers
         }
 
         // GET: FileStorages
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
-            var quickPasteContext = _context.FileStorages.Include(f => f.PastedCode);
-            return View(await quickPasteContext.ToListAsync());
-        }
-
-        // GET: FileStorages/Details/5
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null || _context.FileStorages == null)
-            {
-                return NotFound();
-            }
-
-            var fileStorage = await _context.FileStorages
-                .Include(f => f.PastedCode)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (fileStorage == null)
-            {
-                return NotFound();
-            }
-
-            return View(fileStorage);
-        }
-
-        // GET: FileStorages/Create
-        public IActionResult Create()
-        {
-            ViewData["PastedCodeId"] = new SelectList(_context.PastedCodes, "Id", "Id");
             return View();
         }
 
-        // POST: FileStorages/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,TimeUploaded,Filename,PastedCodeId")] FileStorage fileStorage)
+        public async Task<IActionResult> UploadFile(IFormFile file)
         {
-            if (ModelState.IsValid)
-            {
-                _context.Add(fileStorage);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            ViewData["PastedCodeId"] = new SelectList(_context.PastedCodes, "Id", "Id", fileStorage.PastedCodeId);
-            return View(fileStorage);
-        }
+            if (file == null || file.Length == 0)
+                return Content("file not selected");
 
-        // GET: FileStorages/Edit/5
-        public async Task<IActionResult> Edit(int? id)
-        {
-            if (id == null || _context.FileStorages == null)
-            {
-                return NotFound();
-            }
+            var connectionString = "DefaultEndpointsProtocol=https;AccountName=quickpastestorage;AccountKey=vPE+2tZagM9Y4FIh5X0l/qXUAzPaz8sZboy8z2K1OgpMRLWbkYEhI8BhGzcFmVEyvt3BzWMCnB/r+AStrqEgkA==;EndpointSuffix=core.windows.net";
+            var containerName = "quickpastefiles";
+            var blobName = file.FileName;
 
-            var fileStorage = await _context.FileStorages.FindAsync(id);
-            if (fileStorage == null)
-            {
-                return NotFound();
-            }
-            ViewData["PastedCodeId"] = new SelectList(_context.PastedCodes, "Id", "Id", fileStorage.PastedCodeId);
-            return View(fileStorage);
-        }
+            var container = new BlobContainerClient(connectionString, containerName);
+            await container.CreateIfNotExistsAsync();
 
-        // POST: FileStorages/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,TimeUploaded,Filename,PastedCodeId")] FileStorage fileStorage)
-        {
-            if (id != fileStorage.Id)
-            {
-                return NotFound();
-            }
+            var blob = container.GetBlobClient(blobName);
+            await blob.UploadAsync(file.OpenReadStream());
 
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(fileStorage);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!FileStorageExists(fileStorage.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
-            }
-            ViewData["PastedCodeId"] = new SelectList(_context.PastedCodes, "Id", "Id", fileStorage.PastedCodeId);
-            return View(fileStorage);
-        }
-
-        // GET: FileStorages/Delete/5
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null || _context.FileStorages == null)
-            {
-                return NotFound();
-            }
-
-            var fileStorage = await _context.FileStorages
-                .Include(f => f.PastedCode)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (fileStorage == null)
-            {
-                return NotFound();
-            }
-
-            return View(fileStorage);
-        }
-
-        // POST: FileStorages/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            if (_context.FileStorages == null)
-            {
-                return Problem("Entity set 'QuickPasteContext.FileStorages'  is null.");
-            }
-            var fileStorage = await _context.FileStorages.FindAsync(id);
-            if (fileStorage != null)
-            {
-                _context.FileStorages.Remove(fileStorage);
-            }
-            
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
-        }
-
-        private bool FileStorageExists(int id)
-        {
-          return (_context.FileStorages?.Any(e => e.Id == id)).GetValueOrDefault();
+            return RedirectToAction("Index");
         }
     }
 }
