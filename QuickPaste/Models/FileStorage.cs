@@ -11,7 +11,5 @@ public partial class FileStorage
 
     public string Filename { get; set; } = null!;
 
-    public int? PastedCodeId { get; set; }
-
-    public virtual PastedCode? PastedCode { get; set; }
+    public string? HashedCode { get; set; }
 }

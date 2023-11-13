@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using QuickPaste.Models;
+using QuickPaste.Utils;
 
 namespace QuickPaste.Controllers
 {
@@ -37,10 +38,32 @@ namespace QuickPaste.Controllers
             var container = new BlobContainerClient(connectionString, containerName);
             await container.CreateIfNotExistsAsync();
 
+            if (container.GetBlobClient(blobName).Exists())
+                return Content("File already pasted.");
+
             var blob = container.GetBlobClient(blobName);
             await blob.UploadAsync(file.OpenReadStream());
 
-            return Content("File uploaded successfully");
+            var codes = _context.FileStorages.Select(x => x.HashedCode).ToList();
+            var currentCode = CodeGenerationUtils.GenerateCode();
+            var codeHash = HashUtils.GetHash(currentCode);
+
+            while (codes.Contains(codeHash))
+            {
+                currentCode = CodeGenerationUtils.GenerateCode();
+                codeHash = HashUtils.GetHash(currentCode);
+            }
+
+            var fileStorage = new FileStorage
+            {
+                Filename = file.FileName,
+                HashedCode = codeHash
+            };
+
+            _context.FileStorages.Add(fileStorage);
+            await _context.SaveChangesAsync();
+
+            return Content(currentCode);
         }
     }
 }
