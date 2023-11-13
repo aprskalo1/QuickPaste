@@ -1,0 +1,100 @@
+﻿@{
+    ViewData["Title"] = "Copy";
+}
+
+<h1>Copy files</h1>
+
+<div id="drop-area" style="width: 300px;">
+    <h3>Drag and Drop Files Here</h3>
+    <input type="file" id="fileInput" style="display: none;" multiple />
+</div>
+
+<ul id="file-list"></ul>
+
+<button id="submitBtn">Submit</button>
+
+<script>
+    var dropArea = document.getElementById('drop-area');
+    var fileList = document.getElementById('file-list');
+    var submitBtn = document.getElementById('submitBtn');
+    var files = [];
+
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropArea.addEventListener(eventName, highlight, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, unhighlight, false);
+    });
+
+    function highlight() {
+        dropArea.classList.add('highlight');
+    }
+
+    function unhighlight() {
+        dropArea.classList.remove('highlight');
+    }
+
+    dropArea.addEventListener('drop', handleDrop, false);
+
+    function handleDrop(e) {
+        var dt = e.dataTransfer;
+        var newFiles = Array.from(dt.files);
+
+        files = files.concat(newFiles);
+
+        updateFileList();
+    }
+
+    function updateFileList() {
+        fileList.innerHTML = '';
+        files.forEach(file => {
+            var listItem = document.createElement('li');
+            listItem.className = 'file-item';
+            listItem.textContent = file.name;
+            fileList.appendChild(listItem);
+        });
+    }
+
+    dropArea.addEventListener('click', function () {
+        document.getElementById('fileInput').click();
+    });
+
+    document.getElementById('fileInput').addEventListener('change', function () {
+        var newFiles = Array.from(this.files);
+        files = files.concat(newFiles);
+        updateFileList();
+    });
+
+    submitBtn.addEventListener('click', function () {
+        files.forEach(uploadFile);
+        files = [];
+        updateFileList();
+    });
+
+    function uploadFile(file) {
+        var formData = new FormData();
+        formData.append('file', file);
+
+        fetch('/FileStorages/UploadFile', {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => response.text())
+            .then(result => {
+                console.log(result);
+            })
+            .catch(error => {
+                console.error(error);
+            });
+    }
+</script>

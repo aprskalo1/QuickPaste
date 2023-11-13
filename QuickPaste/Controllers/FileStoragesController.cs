@@ -20,7 +20,7 @@ namespace QuickPaste.Controllers
         }
 
         // GET: FileStorages
-        public IActionResult Index()
+        public IActionResult UploadFiles()
         {
             return View();
         }
@@ -40,7 +40,7 @@ namespace QuickPaste.Controllers
             var blob = container.GetBlobClient(blobName);
             await blob.UploadAsync(file.OpenReadStream());
 
-            return RedirectToAction("Index");
+            return Content("File uploaded successfully");
         }
     }
 }
