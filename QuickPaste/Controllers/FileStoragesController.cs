@@ -39,20 +39,20 @@ namespace QuickPaste.Controllers
             await container.CreateIfNotExistsAsync();
 
             if (container.GetBlobClient(blobName).Exists())
-                return Content("File already pasted.");
+            {
+                await container.DeleteBlobIfExistsAsync(blobName);
+
+                var exisitngFile = _context.FileStorages.FirstOrDefault(x => x.Filename == file.FileName);
+                _context.FileStorages.Remove(exisitngFile!);
+                await _context.SaveChangesAsync();
+            }
 
             var blob = container.GetBlobClient(blobName);
             await blob.UploadAsync(file.OpenReadStream());
 
             var codes = _context.FileStorages.Select(x => x.HashedCode).ToList();
-            var currentCode = CodeGenerationUtils.GenerateCode();
+            var currentCode = GenerateUniqueCode();
             var codeHash = HashUtils.GetHash(currentCode);
-
-            while (codes.Contains(codeHash))
-            {
-                currentCode = CodeGenerationUtils.GenerateCode();
-                codeHash = HashUtils.GetHash(currentCode);
-            }
 
             var fileStorage = new FileStorage
             {
@@ -64,6 +64,21 @@ namespace QuickPaste.Controllers
             await _context.SaveChangesAsync();
 
             return Content(currentCode);
+        }
+
+        public string GenerateUniqueCode()
+        {
+            var codes = _context.FileStorages.Select(x => x.HashedCode).ToList();
+            var currentCode = CodeGenerationUtils.GenerateCode();
+            var codeHash = HashUtils.GetHash(currentCode);
+
+            while (codes.Contains(codeHash))
+            {
+                currentCode = CodeGenerationUtils.GenerateCode();
+                codeHash = HashUtils.GetHash(currentCode);
+            }
+
+            return currentCode;
         }
     }
 }
