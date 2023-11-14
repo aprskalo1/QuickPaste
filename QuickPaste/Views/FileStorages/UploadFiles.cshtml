@@ -78,16 +78,19 @@
     });
 
     submitBtn.addEventListener('click', function () {
-        files.forEach(uploadFile);
+        uploadFile(files);
         files = [];
         updateFileList();
     });
 
-    function uploadFile(file) {
+    function uploadFile(files) {
         var formData = new FormData();
-        formData.append('file', file);
 
-        fetch('/FileStorages/UploadFile', {
+        files.forEach(file => {
+            formData.append('files', file);
+        });
+
+        fetch('/FileStorages/SubmitFiles', {
             method: 'POST',
             body: formData
         })

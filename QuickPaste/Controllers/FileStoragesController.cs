@@ -26,41 +26,44 @@ namespace QuickPaste.Controllers
             return View();
         }
 
-        public async Task<IActionResult> UploadFile(IFormFile file)
+        public async Task<IActionResult> SubmitFiles(List<IFormFile> files)
         {
-            if (file == null || file.Length == 0)
-                return Content("file not selected");
+            if (files == null || files.Count == 0)
+                return Content("files not selected");
 
             var connectionString = "DefaultEndpointsProtocol=https;AccountName=quickpastestorage;AccountKey=vPE+2tZagM9Y4FIh5X0l/qXUAzPaz8sZboy8z2K1OgpMRLWbkYEhI8BhGzcFmVEyvt3BzWMCnB/r+AStrqEgkA==;EndpointSuffix=core.windows.net";
             var containerName = "quickpastefiles";
-            var blobName = file.FileName;
 
             var container = new BlobContainerClient(connectionString, containerName);
             await container.CreateIfNotExistsAsync();
 
-            if (container.GetBlobClient(blobName).Exists())
-            {
-                await container.DeleteBlobIfExistsAsync(blobName);
-
-                var exisitngFile = _context.FileStorages.FirstOrDefault(x => x.Filename == file.FileName);
-                _context.FileStorages.Remove(exisitngFile!);
-                await _context.SaveChangesAsync();
-            }
-
-            var blob = container.GetBlobClient(blobName);
-            await blob.UploadAsync(file.OpenReadStream());
-
             var codes = _context.FileStorages.Select(x => x.HashedCode).ToList();
             var currentCode = GenerateUniqueCode();
-            var codeHash = HashUtils.GetHash(currentCode);
 
-            var fileStorage = new FileStorage
+            foreach (var file in files)
             {
-                Filename = file.FileName,
-                HashedCode = codeHash
-            };
+                if (container.GetBlobClient(file.FileName).Exists())
+                {
+                    await container.DeleteBlobIfExistsAsync(file.FileName);
 
-            _context.FileStorages.Add(fileStorage);
+                    var existingFile = _context.FileStorages.FirstOrDefault(x => x.Filename == file.FileName);
+                    _context.FileStorages.Remove(existingFile!);
+                }
+
+                var blob = container.GetBlobClient(file.FileName);
+                await blob.UploadAsync(file.OpenReadStream());
+
+                var codeHash = HashUtils.GetHash(currentCode);
+
+                var fileStorage = new FileStorage
+                {
+                    Filename = file.FileName,
+                    HashedCode = codeHash
+                };
+
+                _context.FileStorages.Add(fileStorage);
+            }
+
             await _context.SaveChangesAsync();
 
             return Content(currentCode);
