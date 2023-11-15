@@ -1,9 +1,9 @@
-﻿namespace QuickPaste.DTO_s
+﻿namespace QuickPaste.ViewModels
 {
     public class FileStorageDTO
     {
         public string Filename { get; set; } = null!;
 
-        public string? HashedCode { get; set; }
+        public string BlobURI { get; set; } = null!;
     }
 }

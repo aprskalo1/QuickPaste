@@ -6,8 +6,10 @@ using Azure.Storage.Blobs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using NuGet.Protocol;
 using QuickPaste.Models;
 using QuickPaste.Utils;
+using QuickPaste.ViewModels;
 
 namespace QuickPaste.Controllers
 {
@@ -29,7 +31,7 @@ namespace QuickPaste.Controllers
         public async Task<IActionResult> SubmitFiles(List<IFormFile> files)
         {
             if (files == null || files.Count == 0)
-                return Content("files not selected");
+                return Content("To upload please select files.");
 
             var connectionString = "DefaultEndpointsProtocol=https;AccountName=quickpastestorage;AccountKey=vPE+2tZagM9Y4FIh5X0l/qXUAzPaz8sZboy8z2K1OgpMRLWbkYEhI8BhGzcFmVEyvt3BzWMCnB/r+AStrqEgkA==;EndpointSuffix=core.windows.net";
             var containerName = "quickpastefiles";
@@ -67,6 +69,45 @@ namespace QuickPaste.Controllers
             await _context.SaveChangesAsync();
 
             return Content(currentCode);
+        }
+
+        public IActionResult GetFiles()
+        {
+            return View();
+        }
+
+        public async Task<IActionResult> GetFilesByCode(string code)
+        {
+            if (string.IsNullOrEmpty(code))
+                return Json(new { message = "To paste files please enter valid code." });
+
+
+            var codeHash = HashUtils.GetHash(code);
+            var files = await _context.FileStorages.Where(x => x.HashedCode == codeHash).ToListAsync();
+
+            if (files.Count == 0)
+                return Json(new { message = "Code doesn't match any files." });
+
+            var connectionString = "DefaultEndpointsProtocol=https;AccountName=quickpastestorage;AccountKey=vPE+2tZagM9Y4FIh5X0l/qXUAzPaz8sZboy8z2K1OgpMRLWbkYEhI8BhGzcFmVEyvt3BzWMCnB/r+AStrqEgkA==;EndpointSuffix=core.windows.net";
+            var containerName = "quickpastefiles";
+
+            var container = new BlobContainerClient(connectionString, containerName);
+            await container.CreateIfNotExistsAsync();
+
+            var fileVMs = new List<FileStorageDTO>();
+            foreach (var file in files)
+            {
+                var blob = container.GetBlobClient(file.Filename);
+                var fileVM = new FileStorageDTO
+                {
+                    Filename = file.Filename,
+                    BlobURI = blob.Uri.ToString()
+                };
+
+                fileVMs.Add(fileVM);
+            }
+
+            return Json(fileVMs);
         }
 
         public string GenerateUniqueCode()
