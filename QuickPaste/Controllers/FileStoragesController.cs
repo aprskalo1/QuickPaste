@@ -22,7 +22,11 @@ namespace QuickPaste.Controllers
             _context = context;
         }
 
-        // GET: FileStorages
+        public IActionResult Index()
+        {
+            return View();
+        }   
+
         public IActionResult UploadFiles()
         {
             return View();
