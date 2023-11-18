@@ -17,6 +17,8 @@ public partial class QuickPasteContext : DbContext
 
     public virtual DbSet<FileStorage> FileStorages { get; set; }
 
+    public virtual DbSet<TextStorage> TextStorages { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.UseSqlServer("server=.;Database=QuickPaste;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=true");
 
@@ -24,23 +26,37 @@ public partial class QuickPasteContext : DbContext
     {
         modelBuilder.Entity<FileStorage>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__FileStor__3213E83FC42CBE17");
+            entity.HasKey(e => e.Id).HasName("PK__FileStor__3213E83F8177C759");
 
             entity.ToTable("FileStorage");
 
-            entity.Property(e => e.Id)
-                .ValueGeneratedOnAdd()
-                .HasColumnName("id");
+            entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.Filename)
                 .HasMaxLength(255)
-                .IsUnicode(false)
                 .HasColumnName("filename");
             entity.Property(e => e.HashedCode)
-                .HasMaxLength(43)
-                .IsUnicode(false)
+                .HasMaxLength(255)
                 .HasColumnName("hashed_code");
             entity.Property(e => e.TimeUploaded)
                 .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime")
+                .HasColumnName("time_uploaded");
+        });
+
+        modelBuilder.Entity<TextStorage>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__TextStor__3213E83F0FF25B2A");
+
+            entity.ToTable("TextStorage");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Filename)
+                .HasMaxLength(255)
+                .HasColumnName("filename");
+            entity.Property(e => e.HashedCode)
+                .HasMaxLength(255)
+                .HasColumnName("hashed_code");
+            entity.Property(e => e.TimeUploaded)
                 .HasColumnType("datetime")
                 .HasColumnName("time_uploaded");
         });

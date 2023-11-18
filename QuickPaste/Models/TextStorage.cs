@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace QuickPaste.Models;
 
-public partial class FileStorage
+public partial class TextStorage
 {
     public int Id { get; set; }
 
