@@ -47,7 +47,9 @@ namespace QuickPaste.Controllers
         public async Task<IActionResult> GetFilesByCode(string code)
         {
             if (string.IsNullOrEmpty(code))
-                return Content("Please enter code.");
+                return Json(new { message = "Please enter valid code." });
+
+            code = code.ToUpper();
 
             var feedIterator = container.GetItemQueryIterator<TextStorage>(
                 new QueryDefinition($"SELECT * FROM c WHERE c.HashedCode = @hashedCode")
@@ -60,11 +62,11 @@ namespace QuickPaste.Controllers
 
                 if (firstDocument != null)
                 {
-                    return Content(firstDocument.TextContent);
+                    return Json(firstDocument.TextContent);
                 }
             }
 
-            return Content("No text found.");
+            return Json(new { message = "No existing copied text found." });
         }
 
 

@@ -10,25 +10,31 @@
 
 <button id="submitBtn">Paste</button>
 
-<div id="retrieved-text"></div> 
+<div id="retrieved-text"></div>
 
 <script>
     var submitBtn = document.getElementById('submitBtn');
     var pasteCodeInput = document.getElementById('paste-code');
-    var retrievedFilesContainer = document.getElementById('retrieved-text'); 
+    var retrievedFilesContainer = document.getElementById('retrieved-text');
 
     document.getElementById("submitBtn").addEventListener("click", function () {
-        var code = document.getElementById("paste-code").value; 
+        var code = document.getElementById("paste-code").value;
         var formData = new FormData();
-        formData.append('code', code); 
+        formData.append('code', code);
 
         fetch('/TextStorages/GetFilesByCode', {
             method: 'POST',
             body: formData
         })
-            .then(response => response.text())
+            .then(response => response.json())
             .then(result => {
                 console.log(result);
+
+                if (result.message) {
+                    console.log(result.message);
+                    return;
+                }
+
                 retrievedFilesContainer.innerHTML = result;
             })
             .catch(error => {

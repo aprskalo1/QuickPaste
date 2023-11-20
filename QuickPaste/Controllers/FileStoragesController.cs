@@ -85,6 +85,7 @@ namespace QuickPaste.Controllers
             if (string.IsNullOrEmpty(code))
                 return Json(new { message = "To paste files please enter valid code." });
 
+            code = code.ToUpper();
 
             var codeHash = HashUtils.GetHash(code);
             var files = await _context.FileStorages.Where(x => x.HashedCode == codeHash).ToListAsync();
