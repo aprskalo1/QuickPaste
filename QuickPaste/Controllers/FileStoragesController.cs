@@ -35,7 +35,7 @@ namespace QuickPaste.Controllers
         public async Task<IActionResult> SubmitFiles(List<IFormFile> files)
         {
             if (files == null || files.Count == 0)
-                return Content("To upload please select files.");
+                return Content("To copy please select files.");
 
             var connectionString = "DefaultEndpointsProtocol=https;AccountName=quickpastestorage;AccountKey=vPE+2tZagM9Y4FIh5X0l/qXUAzPaz8sZboy8z2K1OgpMRLWbkYEhI8BhGzcFmVEyvt3BzWMCnB/r+AStrqEgkA==;EndpointSuffix=core.windows.net";
             var containerName = "quickpastefiles";

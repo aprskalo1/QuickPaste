@@ -1,0 +1,31 @@
+﻿@{
+    ViewData["Title"] = "Paste";
+}
+
+<h1>Paste files</h1>
+
+<textarea id="copy-area" rows="10" cols="50"></textarea>
+<button id="submitBtn">Copy</button>
+<div id="copy-code"></div>
+
+<script>
+    document.getElementById("submitBtn").addEventListener("click", function () {
+        var text = document.getElementById("copy-area").value;
+        var formData = new FormData();
+        formData.append('textContent', text);
+
+        fetch('/TextStorages/SubmitText', {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => response.text())
+            .then(result => {
+                console.log(result);
+                document.getElementById('copy-code').innerHTML = result;
+            })
+            .catch(error => {
+                console.error(error);
+            });
+    });
+
+</script>
