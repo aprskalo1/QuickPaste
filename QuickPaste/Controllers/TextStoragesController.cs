@@ -39,12 +39,39 @@ namespace QuickPaste.Controllers
             return View();
         }
 
+        public IActionResult GetFiles()
+        {
+            return View();
+        }
+
+        public async Task<IActionResult> GetFilesByCode(string code)
+        {
+            if (string.IsNullOrEmpty(code))
+                return Content("Please enter code.");
+
+            var feedIterator = container.GetItemQueryIterator<TextStorage>(
+                new QueryDefinition($"SELECT * FROM c WHERE c.HashedCode = @hashedCode")
+                    .WithParameter("@hashedCode", HashUtils.GetHash(code)));
+
+            if (feedIterator.HasMoreResults)
+            {
+                var textStorage = await feedIterator.ReadNextAsync();
+                var firstDocument = textStorage.FirstOrDefault();
+
+                if (firstDocument != null)
+                {
+                    return Content(firstDocument.TextContent);
+                }
+            }
+
+            return Content("No text found.");
+        }
+
+
         public async Task<IActionResult> SubmitText(string textContent)
         {
             if (string.IsNullOrEmpty(textContent))
-            {
                 return Content("Please enter text that you want to copy.");
-            }
 
             var code = CodeGenerationUtils.GenerateCode();
 

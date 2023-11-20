@@ -98,7 +98,7 @@ namespace QuickPaste.Controllers
             var container = new BlobContainerClient(connectionString, containerName);
             await container.CreateIfNotExistsAsync();
 
-            var fileVMs = new List<FileStorageDTO>();
+            var fileDTO = new List<FileStorageDTO>();
             foreach (var file in files)
             {
                 var blob = container.GetBlobClient(file.Filename);
@@ -108,10 +108,10 @@ namespace QuickPaste.Controllers
                     BlobURI = blob.Uri.ToString()
                 };
 
-                fileVMs.Add(fileVM);
+                fileDTO.Add(fileVM);
             }
 
-            return Json(fileVMs);
+            return Json(fileDTO);
         }
 
         public string GenerateUniqueCode()
