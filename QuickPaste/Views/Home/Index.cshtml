@@ -2,10 +2,49 @@
     ViewData["Title"] = "Home";
 }
 
-<h1>Choose what u want to do</h1>
+<div class="card mb-3" style="max-width: 540px;">
+    <div class="row g-0">
+        <div class="col-md-4">
+            <img src="~/assets/text-files.jpeg" class="img-fluid rounded-start" alt="text files image">
+        </div>
+        <div class="col-md-8">
+            <div class="card-body">
+                <h5 class="card-title">Transfer text</h5>
+                <p class="card-text">Safely transfer your text to another device.</p>
+                <a asp-controller="TextStorages">Text</a>
+            </div>
+        </div>
+    </div>
+</div>
 
-<a asp-controller="FileStorages">Other files</a>
+<div class="card mb-3" style="max-width: 540px;">
+    <div class="row g-0">
+        <div class="col-md-8">
+            <div class="card-body">
+                <h5 class="card-title">Transfer text</h5>
+                <p class="card-text">Safely transfer your text to another device.</p>
+                <a asp-controller="TextStorages">Text</a>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <img src="~/assets/text-files.jpeg" class="img-fluid rounded-start" alt="text files image">
+        </div>
+    </div>
+</div>
 
-<h2>OR</h2>
 
-<a asp-controller="TextStorages">Text</a>
+@* <div class="d-flex flex-row">
+    <div class="img-fluid w-50"><img src="~/assets/text-files.jpeg" class="custom-image" /></div>
+    <div class="w-50">
+        <p>text files copy and paste</p>
+        <a asp-controller="TextStorages">Text</a>
+    </div>
+</div>
+
+<div class="d-flex flex-row">
+    <div class="w-50">
+        <p>Other files such as .png . jpeg .docx</p>
+        <a asp-controller="FileStorages">Text</a>
+    </div>
+    <div class="img-fluid w-50"><img src="~/assets/other-files.jpeg" class="custom-image" /></div>
+</div> *@
